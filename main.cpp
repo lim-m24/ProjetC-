@@ -22,8 +22,7 @@ int main(int argc, char *argv[])
         msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.setDefaultButton(QMessageBox::Ok);
         int ret = msgBox.exec();
-        if (ret == QMessageBox::Ok)
-        {
+        if (ret == QMessageBox::Ok){
             return 1;
         }
     }
