@@ -3,6 +3,7 @@
 #include<QString>
 #include<QSqlQuery>
 #include <QSqlQueryModel>
+#include <QStandardItem>
 
 class Budget
 {
@@ -20,9 +21,14 @@ public:
     void setprix_r(float);
 
     bool ajouter();
-    bool modifier();
+    bool modifier(bool,bool);
     QSqlQueryModel* afficher(int);
     bool supprimer(int);
+    bool annuler(int);
+
+    QSqlQueryModel* afficher_stock();
+    QSqlQueryModel* afficher_demande();
+    QStandardItemModel* afficher_forniseur(const int& selectedProductId, int quantityNeeded);
 private:
     int id;
     float prix_e, prix_r;
