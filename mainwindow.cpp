@@ -5,12 +5,14 @@
 #include <QMessageBox>
 #include <QDoubleValidator>
 
+int sort;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    ui->tableView->setModel(F.afficher());
+    sort=0;
+    ui->tableView->setModel(F.afficher(sort));
     ui->le_id->setValidator(new QIntValidator(1,99999999,this));
     ui->le_id_2->setValidator(new QIntValidator(1,99999999,this));
     ui->le_id_3->setValidator(new QIntValidator(1,99999999,this));
@@ -38,7 +40,7 @@ void MainWindow::on_ajouter_clicked()
 
     if (test) {
         msgBox.setText("Ajout avec succès");
-        ui->tableView->setModel(F.afficher());
+        ui->tableView->setModel(F.afficher(sort));
     } else {
         msgBox.setText("Failed");
     }
@@ -53,7 +55,7 @@ void MainWindow::on_supprimer_clicked()
     QMessageBox msgBox;
     if(test){
         msgBox.setText("Suppression avec succes");
-        ui->tableView->setModel(F.afficher());
+        ui->tableView->setModel(F.afficher(sort));
     }
     else
         msgBox.setText("failed");
@@ -75,10 +77,41 @@ void MainWindow::on_Modifier_clicked()
 
     if (test) {
         msgBox.setText("Update avec succès");
-        ui->tableView->setModel(F.afficher());
+        ui->tableView->setModel(F.afficher(sort));
     } else {
         msgBox.setText("Failed");
     }
 
     msgBox.exec();
+}
+
+void MainWindow::on_pushButton_clicked()
+{
+    QString selectedValue = ui->comboBox->currentText();
+    if(selectedValue=="ID"){
+        if(sort==1){
+            sort=0;
+        }else{
+            sort=1;
+        }
+    }else{
+        if(sort==3){
+            sort=2;
+        }else{
+            sort=3;
+        }
+    }
+    ui->tableView->setModel(F.afficher(sort));
+
+}
+
+void MainWindow::on_lineEdit_textChanged(const QString &text)
+{
+    if (text.isEmpty()) {
+        ui->tableView->setModel(F.afficher(sort));
+    } else {
+        QSqlQueryModel *model = new QSqlQueryModel();
+        model->setQuery("SELECT * FROM FORNISUER WHERE ID LIKE '" + text + "%' or NOM LIKE '" + text + "%' or EMAIL LIKE '" + text + "%' or TEL LIKE '" + text + "%'");
+        ui->tableView->setModel(model);
+    }
 }

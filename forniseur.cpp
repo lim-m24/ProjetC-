@@ -116,10 +116,27 @@ bool Forniseur::supprimer(int id)
     return false;
 }
 
-QSqlQueryModel *Forniseur::afficher()
+QSqlQueryModel *Forniseur::afficher(int sort)
 {
     QSqlQueryModel *model = new QSqlQueryModel();
-    model->setQuery("SELECT * FROM FORNISUER");
+    QString orderBy;
+    switch (sort) {
+        case 0:
+            orderBy = "ID ASC";
+            break;
+        case 1:
+            orderBy = "ID DESC";
+            break;
+        case 2:
+            orderBy = "NOM DESC";
+            break;
+        case 3:
+            orderBy = "NOM ASC";
+            break;
+    }
+
+    QString queryStr = "SELECT * FROM FORNISUER ORDER BY " + orderBy;
+    model->setQuery(queryStr);
     model->setHeaderData(0, Qt::Horizontal, QObject::tr("ID"));
     model->setHeaderData(1, Qt::Horizontal, QObject::tr("NOM"));
     model->setHeaderData(2, Qt::Horizontal, QObject::tr("EMAIL"));
