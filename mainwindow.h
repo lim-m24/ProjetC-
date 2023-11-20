@@ -26,6 +26,14 @@ private slots:
     void on_pushButton_clicked();
 
     void on_lineEdit_textChanged(const QString &arg1);
+    void updateNomLabel(const QString &text);
+    void tempSlot(const QString &text);
+
+
+    void on_pushButton_2_clicked();
+
+
+    void on_pushButton_3_clicked();
 
 private:
     Ui::MainWindow *ui;

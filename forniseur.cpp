@@ -144,3 +144,16 @@ QSqlQueryModel *Forniseur::afficher(int sort)
     model->setHeaderData(4, Qt::Horizontal, QObject::tr("ADRESSE"));
     return model;
 }
+
+QSqlQueryModel *Forniseur::afficher2(int text) {
+    QSqlQueryModel *model = new QSqlQueryModel();
+
+    QString queryStr = "SELECT * FROM DISTRIBUTION WHERE ID_F = " + QString::number(text);
+    model->setQuery(queryStr);
+    model->setHeaderData(0, Qt::Horizontal, QObject::tr("ID_F"));
+    model->setHeaderData(1, Qt::Horizontal, QObject::tr("ID_P"));
+    model->setHeaderData(2, Qt::Horizontal, QObject::tr("Prix"));
+    model->setHeaderData(3, Qt::Horizontal, QObject::tr("QTE"));
+    return model;
+}
+

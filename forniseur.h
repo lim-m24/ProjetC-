@@ -25,6 +25,7 @@ public:
     bool ajouter();
     bool modifier();
     QSqlQueryModel* afficher(int);
+    QSqlQueryModel *afficher2(int);
     bool supprimer(int);
 private:
     int id,tel;
