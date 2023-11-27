@@ -1,134 +1,49 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "budget.h"
-#include <QSqlQueryModel>
+#include "produit.h"
 #include <QMessageBox>
-#include <QDoubleValidator>
 #include <QSqlQuery>
+#include <QIntValidator>
+#include <QDebug>
 #include <QString>
+#include <QTableView>
+#include <QSqlDatabase>
+#include <QObject>
 #include <QSqlError>
-#include <QBarSet>
-#include <QBarSeries>
-#include <QChart>
-#include <QChartView>
-#include <QBarCategoryAxis>
-
-#include <QStringList>
-
-#include <QSqlQuery>
-#include <QSqlRecord>
-
-#include <QPrinter>
 #include <QPainter>
-#include <QPrintDialog>
+#include <QPdfWriter>
 #include <QFileDialog>
 
+#include <QGroupBox >
+#include <QVBoxLayout>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QMainWindow>
+
+/*#include <QtCharts/QChartView>
+#include <QtCharts/QBarSeries>
+#include <QtCharts/QBarSet>
+#include <QtCharts/QLegend>
+#include <QtCharts/QBarCategoryAxis>
+
+QT_CHARTS_USE_NAMESPACE*/
 
 
-int sort;
-using namespace QtCharts;
-QStandardItemModel *model2;
-QStandardItemModel *model3;
-QStandardItemModel *model4;
-int selectedProductId;
-int quantityNeeded;
-
-MainWindow::MainWindow(QWidget *parent):
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
+MainWindow::MainWindow(QWidget *parent) :
+    QMainWindow(parent),ui(new Ui::MainWindow)
 {
-    ui->setupUi(this);
-    showMaximized();
-    sort = 0;
+        ui->setupUi(this);
+        ui->i->setValidator ( new QIntValidator(10000000, 99999999, this));
+        ui->mi->setValidator ( new QIntValidator(10000000, 9999999, this));
+        ui->si->setValidator ( new QIntValidator(10000000, 9999999, this));
+        ui->id_search->setValidator ( new QIntValidator(10000000, 9999999, this));
+        ui->qu->setValidator ( new QIntValidator(1, 999999, this));
+        ui->mqu->setValidator ( new QIntValidator(1, 999999, this));
+        ui->pa->setValidator ( new QIntValidator(0, 999999, this));
+        ui->mpa->setValidator ( new QIntValidator(0, 999999, this));
+        ui->pv->setValidator ( new QIntValidator(0, 999999, this));
+        ui->mpv->setValidator ( new QIntValidator(0, 999999, this));
 
-    ui->lineEdit_id->setValidator(new QIntValidator(1,99999999,this));
-    ui->lineEdit_id_2->setValidator(new QIntValidator(1,99999999,this));
-    ui->lineEdit_id_3->setValidator(new QIntValidator(1,99999999,this));
-    ui->lineEdit_pe->setValidator(new QDoubleValidator(0.0,99999.99,2,this));
-    ui->lineEdit_pe_2->setValidator(new QDoubleValidator(0.0,99999.99,2,this));
-    ui->lineEdit_pr->setValidator(new QDoubleValidator(0.0,99999.99,2,this));
-    ui->lineEdit_pr_2->setValidator(new QDoubleValidator(0.0,99999.99,2,this));
-    connect(ui->lineEditSearch, &QLineEdit::textChanged, this, &MainWindow::on_lineEditSearch_textChanged);
-
-    ui->tableView->setModel(B.afficher(sort));
-    ui->tableView_stock->setModel(B.afficher_stock());
-    ui->tableView_demande->setModel(B.afficher_demande());
-
-
-
-    model2 = new QStandardItemModel(this);
-
-    ui->tableView_estimate->setModel(model2);
-
-    model2->setHorizontalHeaderLabels({"Product", "Qte"});
-    //--------------------------------------------
-    QStringList items;
-
-     QSqlQuery query;
-     query.exec("SELECT PRODUIT.NOM "
-                "FROM PRODUIT "
-                "JOIN (SELECT PRODUIT.ID_P AS PID, SUM(FACTURE.QTE) AS TotalQte "
-                "      FROM PRODUIT "
-                "      JOIN FACTURE ON FACTURE.PRODUIT = PRODUIT.ID_P "
-                "      GROUP BY PRODUIT.ID_P) SubQuery "
-                "ON PRODUIT.ID_P = SubQuery.PID "
-                "WHERE PRODUIT.QTE < SubQuery.TotalQte;");
-
-     while (query.next()) {
-         QString item = query.value(0).toString();
-         items.append(item);
-     }
-
-     ui->comboBox->clear();
-     ui->comboBox->addItems(items);
-     ///////////////////Bilan////////////////////
-
-     model3 = B.afficher_forniseur(selectedProductId, quantityNeeded);
-     ui->tableView_buy->setModel(model3);
-     model4 = new QStandardItemModel(this);
-     ui->tableView_buy->setModel(model4);
-     model4->setHorizontalHeaderLabels({"ID_F", "ID_P", "Qte Bought", "Prix"});
-
-     ///////////////////STAT////////////////////
-
-     QSqlQuery query5("SELECT ID, PRIX_E, PRIX_R, DATE_B, STATUS FROM BUDGET");
-
-     QBarSet *priceDifferencesSet = new QBarSet("Price Differences");
-
-     QBarCategoryAxis *axis = new QBarCategoryAxis();  // Declaration of 'axis'
-
-     while (query5.next()) {
-         QDateTime date = query5.value("DATE_B").toDateTime();
-         float estimatedPrice = query5.value("PRIX_E").toFloat();
-         float actualPrice = query5.value("PRIX_R").toFloat();
-
-         float difference = estimatedPrice - actualPrice;
-         priceDifferencesSet->append(difference);
-
-         // Assuming you want to label the X-axis with dates
-         QString dateString = date.toString("yyyy-MM-dd");
-         axis->append(dateString);
-     }
-
-     QBarSeries *series = new QBarSeries();
-     series->append(priceDifferencesSet);
-
-     QChart *chart = new QChart();
-     chart->addSeries(series);
-     chart->setTitle("Price Differences Between Estimated and Actual Prices");
-     chart->setAnimationOptions(QChart::SeriesAnimations);
-
-     axis->setTitleText("Date");  // Setting the title for the X-axis
-     chart->createDefaultAxes();
-     chart->setAxisX(axis, series);
-
-     QChartView *chartView = new QChartView(chart);
-     chartView->setParent(ui->horizontalFrame);
-
-
-
-
-
+    ui->tableView->setModel(p.afficher());
 }
 
 MainWindow::~MainWindow()
@@ -136,287 +51,198 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-
-//add
-void MainWindow::on_pushButton_7_clicked()
+void MainWindow::on_ajout_clicked()
 {
-    QSqlQuery query;
-    int id = ui->lineEdit_id->text().toInt();
-    float prix_e = ui->lineEdit_pe->text().toFloat();
-    float prix_r = ui->lineEdit_pr->text().toFloat();
+    int id = ui->i->text().toInt();
+    int quantite = ui->qu->text().toInt();
+    float prix_vente = ui->pv->text().toFloat();
+    float prix_achat = ui->pa->text().toFloat();
+    QString description = ui->d->text();
+    QString nom = ui->m->text();
 
-    Budget B(id, prix_e, prix_r);
-    bool test = B.ajouter();
-
-
-    QString idString = QString::number(id);
-
-
-    QMessageBox msgBox;
-
-    if (test) {
-        msgBox.setText("Ajout avec succès");
-        ui->tableView->setModel(B.afficher(sort));
-    } else {
-        msgBox.setText("Failed");
-    }
-
-    msgBox.exec();
-}
-
-//delete
-void MainWindow::on_pushButton_8_clicked()
-{
-    Budget B1; B1.setid(ui->lineEdit_id_2->text().toInt());
-    bool test=B1.supprimer(B1.getid());
-    QMessageBox msgBox;
-    if(test){
-        msgBox.setText("Suppression avec succes");
-        ui->tableView->setModel(B.afficher(sort));
-    }
-    else
-        msgBox.setText("failed");
-        msgBox.exec();
-}
-//update
-void MainWindow::on_pushButton_9_clicked()
-{
-    bool wiw,wiw2;
-    int id = ui->lineEdit_id_3->text().toInt();
-    float prix_e = ui->lineEdit_pe_2->text().toFloat();
-    float prix_r = ui->lineEdit_pr_2->text().toFloat();
-    Budget B(id, prix_e, prix_r);
+    produit p(id,nom,description,prix_vente,prix_achat,quantite);
+    bool test=p.ajouter();
+    if(test)
     {
-        wiw2=true;
+        QMessageBox::information(nullptr, QObject::tr("Ajout Produit"),
+                    QObject::tr("Produit ajouté.\n"
+                                "Continuer."), QMessageBox::Cancel);
+        ui->tableView->setModel(p.afficher());
     }
+    else {
+        QMessageBox::critical(nullptr, QObject::tr("ne pas ajouter produit"),
+                    QObject::tr("Produit non ajouté.\n"
+                                "Cliquer quitter."), QMessageBox::Cancel);
+    }
+}
+
+void MainWindow::on_supprimer_clicked()
+{
+
+    int id=ui->si->text().toInt();
+    bool test=p.supprimer(id);
+    if(test)
     {
-        wiw=true;
-    }
-    bool test = B.modifier(wiw,wiw2);
-    QMessageBox msgBox;
+        QMessageBox::information(nullptr, QObject::tr("Supprime"),
+                    QObject::tr("Produit supprimé.\n"
+                                "Cliquer quitter."), QMessageBox::Cancel);
 
-    if (test) {
-        msgBox.setText("Update avec succès");
-        ui->tableView->setModel(B.afficher(sort));
-    } else {
-        msgBox.setText("Failed");
+        ui->tableView->setModel(p.afficher());
     }
-
-    msgBox.exec();
+    else {
+        QMessageBox::critical(nullptr, QObject::tr("non Supprime"),
+                    QObject::tr("Produit pas supprimé.\n"
+                                "Cliquer quitter."), QMessageBox::Cancel);
+    }
 }
 
-void MainWindow::on_pushButton_10_clicked()
+void MainWindow::on_afficher_clicked()
 {
-    if(sort==1){
-        sort=0;
-    }else{
-        sort=1;
-    }
-    ui->tableView->setModel(B.afficher(sort));
+    ui->tableView->setModel(p.afficher());
 }
 
-void MainWindow::on_pushButton_11_clicked()
+void MainWindow::on_modifier_clicked()
 {
-    if(sort==2){
-        sort=3;
-    }else{
-        sort=2;
-    }
-    ui->tableView->setModel(B.afficher(sort));
+    int id = ui->mi->text().toInt();
+    int quantite = ui->mqu->text().toInt();
+    float prix_vente = ui->mpv->text().toInt();
+    float prix_achat = ui->mpa->text().toInt();
+    QString description = ui->md->text();
+    QString nom = ui->mm->text();
+
+     produit p(id,nom,description,prix_vente,prix_achat,quantite);
+
+     p.modifier();
+     if(p.modifier())
+     {
+         QMessageBox::information(nullptr, QObject::tr("Modif produit"),
+                     QObject::tr("produit modifié.\n"
+                                 "Continuer."), QMessageBox::Cancel);
+         ui->tableView->setModel(p.afficher());
+     }
+     else {
+         QMessageBox::critical(nullptr, QObject::tr("Modif produit"),
+                     QObject::tr("produit non modifié.\n"
+                                 "Cliquer quitter."), QMessageBox::Cancel);
+     }
+
 }
 
-void MainWindow::on_pushButton_12_clicked()
+
+void MainWindow::on_pdf_clicked()
 {
-    if(sort==4){
-        sort=5;
-    }else{
-        sort=4;
-    }
-    ui->tableView->setModel(B.afficher(sort));
-}
+    QString fileName = QFileDialog::getSaveFileName(this, "Export PDF", "", ".pdf");
+        if (fileName.isEmpty()) return; // User canceled the dialog
 
-void MainWindow::on_pushButton_13_clicked()
-{
-    if(sort==6){
-        sort=7;
-    }else{
-        sort=6;
-    }
-    ui->tableView->setModel(B.afficher(sort));
-}
+        QPdfWriter pdf(fileName);
+        QPainter painter(&pdf);
 
-void MainWindow::on_lineEditSearch_textChanged(const QString &searchText) {
-    if (searchText.isEmpty()) {
-        ui->tableView->setModel(B.afficher(sort));
-    } else {
-        QSqlQueryModel *model = new QSqlQueryModel();
-        model->setQuery("SELECT * FROM BUDGET WHERE ID LIKE '" + searchText + "%'");
-        ui->tableView->setModel(model);
-    }
-}
+        painter.setPen(Qt::red);
+        painter.setFont(QFont("Arial", 25));
+        painter.drawText(1500,1100,"List of PRODUIT");
 
-void MainWindow::on_calendarWidget_selectionChanged()
-{
-    QDate selectedDate = ui->calendarWidget->selectedDate();
+        painter.setPen(Qt::green);
+        painter.drawRect(100,100,7300,2600);
 
-    QSqlQueryModel *model = new QSqlQueryModel();
-    QString formattedDate = selectedDate.toString("dd-MM-yyyy");
-    model->setQuery("SELECT * FROM BUDGET WHERE DATE_B = '" + formattedDate + "'");
-    ui->tableView->setModel(model);
-}
+        painter.drawPixmap(QRect(7600,70,2000,2600),QPixmap("C:/Users/hp-123/Desktop/projetproduit/bijoux.JPG"));
 
-void MainWindow::on_pushButton_14_clicked()
-{
-    QString selectedValue = ui->comboBox->currentText();
+        painter.setPen(Qt::black);
+        painter.setFont(QFont("Arial", 8));
+        painter.drawText(200,3300,"ID");
+        painter.drawText(1100,3300,"NOM");
+        painter.drawText(2100,3300,"DESCRIPTION");
+        painter.drawText(3500,3300,"PRIX_VENTE");
+        painter.drawText(5900,3300,"PRIX_ACHAT");
+        painter.drawText(8000,3300,"QUANTITE");
 
-    if (!selectedValue.isEmpty()) {
         QSqlQuery query;
-        if (query.exec("SELECT QTE FROM PRODUIT WHERE NOM = '" + selectedValue + "';")) {
-            if (query.next()) {
-                QString qte_prod = query.value(0).toString();
+        query.prepare("select* from PRODUIT");
+        query.exec();
 
-                if (query.exec("SELECT SUM(FACTURE.QTE) FROM FACTURE JOIN PRODUIT ON FACTURE.PRODUIT = PRODUIT.ID_P WHERE PRODUIT.NOM = '" + selectedValue + "';")) {
-                    if (query.next()) {
-                        QString qte_commande = query.value(0).toString();
+        int i = 4000;
+        while (query.next()) {
+            painter.drawText(200,i,query.value(0).toString());
+            painter.drawText(1000,i,query.value(1).toString());
+            painter.drawText(2300,i,query.value(2).toString());
+            painter.drawText(3200,i,query.value(3).toString());
+            painter.drawText(5600,i,query.value(4).toString());
+            painter.drawText(8000,i,query.value(5).toString());
 
-                        int qte_needed = qte_commande.toInt() - qte_prod.toInt();
-
-                        if (query.exec("SELECT ID_P FROM PRODUIT WHERE NOM = '" + selectedValue + "';")) {
-                            if (query.next()) {
-                                int idprod = query.value(0).toInt();
-                                QStandardItemModel* model3 = B.afficher_forniseur(idprod, qte_needed);
-                                for (int row = 0; row < model3->rowCount(); ++row) {
-                                    QList<QStandardItem*> rowItems;
-                                    for (int col = 0; col < model3->columnCount(); ++col) {
-                                        QStandardItem* item = model3->item(row, col)->clone();
-                                        rowItems.append(item);
-                                    }
-                                    model4->appendRow(rowItems);
-                                }
-                                QList<QStandardItem*> rowItemsEstimate;
-                                rowItemsEstimate << new QStandardItem(selectedValue);
-                                rowItemsEstimate << new QStandardItem(QString::number(qte_needed));
-                                model2->appendRow(rowItemsEstimate);
-                                ui->tableView_buy->setModel(model4);
-                                updateTotalCostLabel();
-                            }
-                        }
-                    }
-                }
-            }
+            i = i + 500;
         }
-        int now = ui->comboBox->findText(selectedValue);
-        ui->comboBox->removeItem(now);
-    }
+
+        p.afficher();
+        QMessageBox::information(nullptr,QObject::tr("Export PDF"),QObject::tr("Exporté avec succée"),QMessageBox::Cancel);
 }
 
-void MainWindow::updateTotalCostLabel() {
-    double totalCost = 0.0;
-
-    for (int row = 0; row < model4->rowCount(); ++row) {
-        QModelIndex index = model4->index(row, 3);
-        totalCost += index.data().toDouble();
-    }
-
-    ui->totalCostLabel->setText(QString::number(totalCost)+" DT");
-}
-
-
-
-
-
-
-void MainWindow::on_pushButton_15_clicked()
+void MainWindow::on_rupture_stock_clicked()
 {
-    Budget B1; B1.setid(ui->lineEdit_id_2->text().toInt());
-    bool test=B1.annuler(B1.getid());
-    QMessageBox msgBox;
-    if(test){
-        msgBox.setText("Suppression avec succes");
-        ui->tableView->setModel(B.afficher(sort));
-    }
-    else
-        msgBox.setText("failed");
-        msgBox.exec();
+    QString id=ui->id_rupture->text();
+    QSqlQuery  qte ;
+    qte.exec("select QUANTITE from PRODUIT where ID = " +id);
+    qte.next();
+    int nombreTotalStock = qte.value(0).toInt();
+    if (nombreTotalStock ==0) {
+            QMessageBox::critical(this, "Alerte Rupture de Stock", "Le produit est en rupture de stock !");
+        } else {
+            int quantiteDisponible = p. Getquantite();
+            QMessageBox::information(this, "Stock disponible", "Le produit est disponible en stock."+ QString::number(quantiteDisponible));
+        }
 }
 
-
-void MainWindow::on_pushButton_17_clicked()
+void MainWindow::on_statistique_clicked()
 {
-    QSqlQuery query;
-    query.exec("SELECT MAX(ID) FROM BUDGET");
-    query.next();
-    int maxID = query.value(0).toInt();
-    int id=maxID+1;
 
-    QString cleanedText = ui->totalCostLabel->text().remove(QRegExp("[^0-9.]+"));
-    bool conversionOk;
-    float prix_e = cleanedText.toFloat(&conversionOk);
-
-    float prix_r = 0;
-
-    Budget B(id, prix_e, prix_r);
-    bool test = B.ajouter();
-
-
-    QMessageBox msgBox;
-
-    if (test) {
-        msgBox.setText("Ajout avec succès");
-        ui->tableView->setModel(B.afficher(sort));
-    } else {
-        msgBox.setText("Failed");
-    }
-
-    msgBox.exec();
 }
 
-void exportToPdf(QTableView* tableView, QString totalCoast)
+void MainWindow::on_comboBox_activated(const QString &arg1)
 {
-    QString filePath = QFileDialog::getSaveFileName(nullptr, "Save PDF", "", "PDF Files (*.pdf)");
-
-    if (!filePath.isEmpty()) {
-        QPrinter printer(QPrinter::PrinterResolution);
-
-        printer.setOutputFormat(QPrinter::PdfFormat);
-        printer.setPaperSize(QPrinter::A4);
-        printer.setOutputFileName(filePath);
-
-        QPainter painter(&printer);
-
-        painter.setRenderHint(QPainter::Antialiasing, true);
-        painter.setRenderHint(QPainter::HighQualityAntialiasing, true);
-
-        tableView->render(&painter);
-
-        QFont font = painter.font();
-        font.setPointSize(20);
-        painter.setFont(font);
-        painter.drawText(20, printer.height() - 20, "Total Coast: " + totalCoast);
-
-        QMessageBox msgBox;
 
 
-       msgBox.setText("PDF exported successfully to: "+filePath);
-       msgBox.exec();
-    }
+
+        if (arg1 == "Trier") {
+
+               ui->tableView->setModel(p.trier(arg1));
+
+       } else if (arg1 == "Trie par ID") {
+
+               ui->tableView->setModel(p.trier(arg1));
+
+       } else if (arg1 == "Trie par quantite") {
+
+               ui->tableView->setModel(p.trier(arg1));
+
+       } else if (arg1 == "Trie par prix_d'achat") {
+
+                ui->tableView->setModel(p.trier(arg1));
+
+       }
+
 }
 
+/*QtCharts::QBarSeries *series = new QtCharts::QBarSeries;
 
-void MainWindow::on_pushButton_18_clicked()
-{
-    QString totalCoast = ui->totalCostLabel->text();
-    exportToPdf(ui->tableView_buy, totalCoast);
-}
+       for (auto it = data.begin(); it != data.end(); ++it) {
+           QtCharts::QBarSet *set = new QtCharts::QBarSet(it.key());
+           *set << it.value().first << it.value().second;
+           series->append(set);
+       }
 
-void MainWindow::on_comboBox_2_currentTextChanged(const QString &text)
-{
-    if (text.isEmpty()or text=="Status :") {
-        ui->tableView->setModel(B.afficher(sort));
-    } else {
-        QSqlQueryModel *model = new QSqlQueryModel();
-        model->setQuery("SELECT * FROM BUDGET WHERE STATUS = '" + text + "'");
-        ui->tableView->setModel(model);
-    }
-}
+       QtCharts::QChart *chart = new QtCharts::QChart;
+          chart->setTitle("STATISTIQUES TYPES PRODUITS ETATS");
+          chart->addSeries(series);
+       ////////////////////////////////////////////////////////
+       QStringList categories;
+       categories << "RECYCLABLE" << "NON RECYCLABLE";
+       QBarCategoryAxis *axis = new QBarCategoryAxis();
+       axis->append(categories);
+      chart->createDefaultAxes();
+      chart->setAxisX(axis, series);
+      //////////////////////////////////////////////
+       QtCharts::QChartView *chartView = new QtCharts::QChartView(chart);
+          chartView->setRenderHint(QPainter::Antialiasing);
+          QWidget *widget = ui->widget_STATISTIQUE;// Create a widget to contain the chartView
+          QVBoxLayout *layout = new QVBoxLayout(widget);// Create a layout for the widget (using QVBoxLayout in this case)
+          layout->addWidget(chartView);// Add the chartView to the layout
+           widget->show();  */
 

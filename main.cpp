@@ -2,31 +2,27 @@
 #include <QApplication>
 #include <QMessageBox>
 #include "connection.h"
+#include <QtCharts>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    MainWindow w;
     Connection c;
+    bool test=c.createconnect();
+    if(test)
+    {w.show();
+        QMessageBox::information(nullptr, QObject::tr("database is open"),
+                    QObject::tr("connection successful.\n"
+                                "Click Cancel to exit."), QMessageBox::Cancel);
 
-    if (c.createconnect())
-    {
-        MainWindow w;
-        w.show();
-        return a.exec();
-    }
+}
     else
-    {
-        QMessageBox msgBox;
-        msgBox.setText(QObject::tr("Database is not open"));
-        msgBox.setInformativeText(QObject::tr("Connection failed. Click OK to exit."));
-        msgBox.setStandardButtons(QMessageBox::Ok);
-        msgBox.setDefaultButton(QMessageBox::Ok);
-        int ret = msgBox.exec();
-        if (ret == QMessageBox::Ok){
-            return 1;
-        }
-    }
+        QMessageBox::critical(nullptr, QObject::tr("database is not open"),
+                    QObject::tr("connection failed.\n"
+                                "Click Cancel to exit."), QMessageBox::Cancel);
+
+
 
     return a.exec();
 }
-
