@@ -82,6 +82,14 @@ void Login::handleRFIDScan(QByteArray data)
         // Fill the line edits with the retrieved username and password
         ui->lineEdit_username->setText(username);
         ui->lineEdit_password->setText(password);
+        if (serial->isOpen() && serial->isWritable()) {
+            QString datalcd="This tag for "+username;
+            QByteArray data = datalcd.toUtf8();
+            serial->write(data);
+            serial->flush();
+        } else {
+            qDebug() << "Serial port is not open or not writable";
+        }
 
         //QMessageBox::information(this, "RFID Scan", "RFID tag recognized.");
     } else {
