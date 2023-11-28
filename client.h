@@ -34,10 +34,15 @@ public:
     void set_montantDepense(double montantDepense_){montantDepense=montantDepense_;}
 
     bool ajouter();
-    QSqlQueryModel * afficher();
+    bool modifier();
+    QSqlQueryModel* afficherClients(int);
+    QSqlQueryModel* afficherHistoriqueAchats();
+    void exportToPDF(QString id);
+    QString getDetailsByID(QString id);
     bool supprimer(int);
+
 };
 
-QSqlQueryModel* afficherClients();
+
 
 #endif // ETUDIANT_H

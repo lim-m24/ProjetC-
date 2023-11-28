@@ -3,9 +3,12 @@
 # Project created by QtCreator 2018-10-26T21:45:23
 #
 #-------------------------------------------------
+INCLUDEPATH += /le/chemin/vers/wiringPi
 
 QT       += core gui sql
-
+QT       +=serialport
+QT       += core gui charts
+QT       += printsupport
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = Atelier_Connexion
@@ -25,18 +28,26 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+    arduino.cpp \
+    arduinothread.cpp \
     client.cpp \
         main.cpp \
         mainwindow.cpp \
-    connection.cpp
+    connection.cpp \
+    stat_combo.cpp
 
 HEADERS += \
+    arduino.h \
+    arduinothread.h \
     client.h \
         mainwindow.h \
-    connection.h
+    connection.h \
+    stat_combo.h
 
 FORMS += \
-        mainwindow.ui
+        arduino.ui \
+        mainwindow.ui \
+        stat_combo.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
