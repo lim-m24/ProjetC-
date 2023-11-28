@@ -10,10 +10,13 @@
 #include <QValidator>
 #include <QLineEdit>
 #include <QRegularExpression>
+#include <QSerialPort>
+#include <QSerialPortInfo>
 
 
 int sort;
 int form=0;
+QSerialPort *seriall;
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -42,12 +45,25 @@ MainWindow::MainWindow(QWidget *parent) :
             ui->le_password->setToolTip("");
         }
     });
+    // Initialize and open the Serial port
+    seriall = new QSerialPort(this);
+    seriall->setPortName("COM4"); // Replace "COMx" with your Arduino's port
+    seriall->setBaudRate(QSerialPort::Baud9600);
+    if (seriall->open(QIODevice::ReadWrite)) {
+        connect(seriall, &QSerialPort::readyRead, this, &MainWindow::read);
+    } else {
+        QMessageBox::critical(this, "Error", "Could not open Serial port.");
+    }
 
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+void MainWindow::setLabelText(const QString& text)
+{
+    ui->label_16->setText(text);
 }
 
 void MainWindow::on_pushButton_clicked()
@@ -64,14 +80,10 @@ void MainWindow::on_pushButton_clicked()
     Employe E( id_E ,nom,prenom,email,role,username,password);
     if (E.ajouter()) {
         ui->tableView->setModel(E.afficher(sort));
-        /*QMessageBox::information(nullptr, QObject::tr("Operation Successful"),
-                    QObject::tr("SUCCESS.\n"), QMessageBox::Ok);*/
-        //msgBox.setText("Ajout avec succès");
+        QMessageBox::information(this, "ADD", "Ajout succes");
     }else{
-        QMessageBox::critical(nullptr, QObject::tr("Operation Failed"),
-                    QObject::tr("ERROR.\n"), QMessageBox::Cancel);
+        QMessageBox::critical(this, "ADD", "Operation Failed");
     }
-    //msgBox.exec();
 }
 
 void MainWindow::on_pushButton_2_clicked()
@@ -214,3 +226,34 @@ void MainWindow::on_eye_clicked()
         form=0;
     }
 }
+void MainWindow::read(){
+    if (seriall->isOpen()) {
+        buffer.append(seriall->readAll());
+
+        while (buffer.contains('\n')) {
+            QByteArray data = buffer.left(buffer.indexOf('\n')).trimmed();
+            buffer.remove(0, buffer.indexOf('\n') + 1);
+
+            if (!data.isEmpty()) {
+                ui->lineEdit_4->setText(data);
+                storedData=data;
+                qDebug() << "data new: " << storedData;
+            }
+        }
+    }
+}
+void MainWindow::on_pushButton_6_clicked()
+{
+    int id_E=ui->lineEdit_3->text().toInt();
+    QString id_tag=ui->lineEdit_4->text();
+    QSqlQuery query;
+    query.prepare("INSERT INTO TAGS (ID_E,id_tag) VALUES (:ID_E,:id_tag);");
+
+    QString id_E_ = QString::number(id_E);
+    query.bindValue(":ID_E", id_E_);
+    query.bindValue(":id_tag", id_tag);
+
+    query.exec();
+}
+
+

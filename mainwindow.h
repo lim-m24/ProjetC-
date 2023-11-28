@@ -14,6 +14,8 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    void setLabelText(const QString& text);
+
 
 private slots:
     void on_pushButton_clicked();
@@ -33,9 +35,14 @@ private slots:
 
     void on_eye_clicked();
 
+    void on_pushButton_6_clicked();
+    void read();
+
 private:
     Ui::MainWindow *ui;
     Employe E;
+    QByteArray buffer;
+    QByteArray storedData;
 };
 
 #endif // MAINWINDOW_H
