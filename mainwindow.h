@@ -34,9 +34,12 @@ private slots:
 
 
     void on_pushButton_3_clicked();
+    void readData();
+    void queryStockInfo(const QString&);
 
 private:
     Ui::MainWindow *ui;
     Forniseur F;
+    QByteArray buffer;
 };
 #endif // MAINWINDOW_H

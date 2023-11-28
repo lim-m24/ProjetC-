@@ -17,9 +17,14 @@
 #include <QtCharts/QChartView>
 #include <QtCharts/QBarCategoryAxis>
 
+#include <QSerialPort>
+#include <QSerialPortInfo>
 
+QSerialPort *serial;
 using namespace QtCharts;
 int sort,text;
+QString accumulatedData;
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -116,11 +121,88 @@ MainWindow::MainWindow(QWidget *parent)
 
      QChartView *chartView = new QChartView(chart);
      chartView->setParent(ui->horizontalFrame);
+     ///////////////////arduino////////////////////////
+     serial = new QSerialPort(this);
+     serial->setPortName("COM6");
+     serial->setBaudRate(QSerialPort::Baud9600);
+     if (serial->open(QIODevice::ReadWrite)) {
+        connect(serial, &QSerialPort::readyRead, this, &MainWindow::readData);
+     } else {
+         QMessageBox::critical(this, "Error", "Could not open Serial port.");
+     }
+
 }
 MainWindow::~MainWindow()
 {
     delete ui;
 }
+
+void MainWindow::readData() {
+    if (serial->bytesAvailable()) {
+        buffer.append(serial->readAll());
+        while (buffer.contains('\n')) {
+            QByteArray data = buffer.left(buffer.indexOf('\n')).trimmed();
+            buffer.remove(0, buffer.indexOf('\n') + 1);
+            qDebug() << "data:" << data;
+            bool conversionOK;
+            int numericValue = data.toInt(&conversionOK);
+            if (conversionOK) {
+                accumulatedData += data;
+                qDebug() << "data accumulated:" << accumulatedData;
+                if (serial->isOpen() && serial->isWritable()) {
+                    QByteArray data = accumulatedData.toUtf8();
+                    serial->write(data);
+                    serial->flush();
+                } else {
+                    qDebug() << "Serial port is not open or not writable";
+                }
+            } else {
+                if (data == "A") {
+                    queryStockInfo(accumulatedData);
+                    accumulatedData.clear();
+                }
+            }
+        }
+    }
+}
+
+void MainWindow::queryStockInfo(const QString& data) {
+    QSqlQuery query;
+    query.prepare("SELECT QTE FROM PRODUIT WHERE ID_P = :idprod");
+    bool conversionOK;
+    int productID = data.toInt(&conversionOK);
+
+    if (conversionOK) {
+        query.bindValue(":idprod", productID);
+
+        if (query.exec() && query.next()) {
+            QString stock = query.value(0).toString();
+            qDebug() << "Stock:" << stock;
+            if (serial->isOpen() && serial->isWritable()) {
+                QByteArray data = stock.toUtf8();
+                serial->write("stock : "+data);
+                serial->flush();
+            } else {
+                qDebug() << "Serial port is not open or not writable";
+            }
+        } else {
+            qDebug() << "Product not available";
+            QString er="Product not available";
+            if (serial->isOpen() && serial->isWritable()) {
+                QByteArray data = er.toUtf8();
+                serial->write(data);
+                serial->flush();
+            } else {
+                qDebug() << "Serial port is not open or not writable";
+            }
+        }
+    } else {
+        qDebug() << "Failed to convert data to integer.";
+    }
+}
+
+
+
 
 void MainWindow::tempSlot(const QString &text) {
     qDebug() << "Combo box value changed:" << text;
