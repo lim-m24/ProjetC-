@@ -31,6 +31,8 @@ class produit
        QSqlQueryModel * trier(QString);
        QSqlQueryModel *recherche(QString i);
        bool estEnRuptureDeStock() ;
+       QVector<QPointF> getLineChartData();
+       static QSqlDatabase db;
 
        protected:
 

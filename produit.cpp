@@ -1,4 +1,3 @@
-#include <QSqlDatabase>
 #include <QString>
 #include <QSqlQuery>
 #include <QtDebug>
@@ -7,6 +6,9 @@
 #include <QMessageBox>
 #include "mainwindow.h"
 #include "produit.h"
+#include "connexion.h"
+
+
 
 
 produit::~produit()
@@ -161,3 +163,29 @@ bool produit::estEnRuptureDeStock() {
 }
 
 
+QSqlDatabase produit::db = QSqlDatabase::addDatabase("QODBC");
+QVector<QPointF> produit::getLineChartData()
+{
+    QVector<QPointF> dataPoints;
+    db.setDatabaseName("Source_Produit2A");
+    if (!db.open()) {
+            qDebug() << "Failed to open the database";
+            return dataPoints;
+        }
+
+        QSqlQuery query("SELECT QUANTITE, PRIX_ACHAT FROM PRODUIT");
+        if (!query.exec()) {
+            qDebug() << "Query failed:" << query.lastError().text();
+            db.close();
+            return dataPoints;
+        }
+
+        while (query.next()) {
+            int quantite = query.value(0).toInt();
+            float prixVente = query.value(1).toFloat();
+            dataPoints.append(QPointF(quantite, prixVente));
+        }
+        db.close();
+
+        return dataPoints;
+}

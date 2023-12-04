@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "produit.h"
+#include "connexion.h"
+
 #include <QMessageBox>
 #include <QSqlQuery>
 #include <QIntValidator>
@@ -19,37 +21,73 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMainWindow>
 
-/*#include <QtCharts/QChartView>
-#include <QtCharts/QBarSeries>
-#include <QtCharts/QBarSet>
-#include <QtCharts/QLegend>
-#include <QtCharts/QBarCategoryAxis>
-
-QT_CHARTS_USE_NAMESPACE*/
-
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),ui(new Ui::MainWindow)
+    QMainWindow(parent), ui(new Ui::MainWindow)
 {
-        ui->setupUi(this);
-        ui->i->setValidator ( new QIntValidator(10000000, 99999999, this));
-        ui->mi->setValidator ( new QIntValidator(10000000, 9999999, this));
-        ui->si->setValidator ( new QIntValidator(10000000, 9999999, this));
-        ui->id_search->setValidator ( new QIntValidator(10000000, 9999999, this));
-        ui->qu->setValidator ( new QIntValidator(1, 999999, this));
-        ui->mqu->setValidator ( new QIntValidator(1, 999999, this));
-        ui->pa->setValidator ( new QIntValidator(0, 999999, this));
-        ui->mpa->setValidator ( new QIntValidator(0, 999999, this));
-        ui->pv->setValidator ( new QIntValidator(0, 999999, this));
-        ui->mpv->setValidator ( new QIntValidator(0, 999999, this));
+  ui->setupUi(this);
 
-    ui->tableView->setModel(p.afficher());
+  ui->setupUi(this);
+  ui->i->setValidator(new QIntValidator(10000000, 99999999, this));
+  ui->mi->setValidator(new QIntValidator(10000000, 9999999, this));
+  ui->si->setValidator(new QIntValidator(10000000, 9999999, this));
+  ui->id_search->setValidator(new QIntValidator(10000000, 9999999, this));
+  ui->qu->setValidator(new QIntValidator(1, 999999, this));
+  ui->mqu->setValidator(new QIntValidator(1, 999999, this));
+  ui->pa->setValidator(new QIntValidator(0, 999999, this));
+  ui->mpa->setValidator(new QIntValidator(0, 999999, this));
+  ui->pv->setValidator(new QIntValidator(0, 999999, this));
+  ui->mpv->setValidator(new QIntValidator(0, 999999, this));
+
+
+  setupLineChart();
+
+
+  ui->tableView->setModel(p.afficher());
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
 }
+
+void MainWindow::setupLineChart() {
+    ui->setupUi(this);
+
+    // Récupérer les données depuis la base de données
+    produit produit;  // Assurez-vous que la classe Produit est correctement initialisée et connectée à la base de données
+    QVector<QPointF> dataPoints = produit.getLineChartData(); // Assurez-vous d'avoir une fonction appropriée dans votre gestionnaire de base de données
+
+    QLineSeries *series = new QLineSeries();
+
+    // Ajouter les points de données récupérés de la base de données
+    for (const QPointF& dataPoint : dataPoints) {
+        series->append(dataPoint);
+    }
+
+    QChart *chart = new QChart();
+    chart->addSeries(series);
+    chart->createDefaultAxes();
+    chart->setTitle("Analyse de la Corrélation entre le Prix d’Achat et la Quantité");
+
+    chart->legend()->setVisible(true);
+    chart->legend()->setAlignment(Qt::AlignBottom);
+
+    QChartView *chartView = new QChartView(chart);
+    chartView->setRenderHint(QPainter::Antialiasing);
+
+    // Assuming horizontalFrame is inside tabWidget
+    QWidget *currentTab = ui->tabWidget->currentWidget();
+    QFrame *horizontalFrame = currentTab->findChild<QFrame*>("horizontalFrame");
+
+    if (horizontalFrame) {
+        chartView->setParent(horizontalFrame);
+    } else {
+        // Handle the case where horizontalFrame is not found
+        qDebug() << "Error: horizontalFrame not found.";
+    }
+}
+
 
 void MainWindow::on_ajout_clicked()
 {
@@ -190,10 +228,12 @@ void MainWindow::on_rupture_stock_clicked()
         }
 }
 
-void MainWindow::on_statistique_clicked()
+
+void MainWindow::on_chercher_clicked()
 {
 
 }
+
 
 void MainWindow::on_comboBox_activated(const QString &arg1)
 {
@@ -219,30 +259,3 @@ void MainWindow::on_comboBox_activated(const QString &arg1)
        }
 
 }
-
-/*QtCharts::QBarSeries *series = new QtCharts::QBarSeries;
-
-       for (auto it = data.begin(); it != data.end(); ++it) {
-           QtCharts::QBarSet *set = new QtCharts::QBarSet(it.key());
-           *set << it.value().first << it.value().second;
-           series->append(set);
-       }
-
-       QtCharts::QChart *chart = new QtCharts::QChart;
-          chart->setTitle("STATISTIQUES TYPES PRODUITS ETATS");
-          chart->addSeries(series);
-       ////////////////////////////////////////////////////////
-       QStringList categories;
-       categories << "RECYCLABLE" << "NON RECYCLABLE";
-       QBarCategoryAxis *axis = new QBarCategoryAxis();
-       axis->append(categories);
-      chart->createDefaultAxes();
-      chart->setAxisX(axis, series);
-      //////////////////////////////////////////////
-       QtCharts::QChartView *chartView = new QtCharts::QChartView(chart);
-          chartView->setRenderHint(QPainter::Antialiasing);
-          QWidget *widget = ui->widget_STATISTIQUE;// Create a widget to contain the chartView
-          QVBoxLayout *layout = new QVBoxLayout(widget);// Create a layout for the widget (using QVBoxLayout in this case)
-          layout->addWidget(chartView);// Add the chartView to the layout
-           widget->show();  */
-

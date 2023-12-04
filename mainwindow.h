@@ -1,7 +1,12 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 #include <QMainWindow>
+#include <QObject>
 #include "produit.h"
+
+#include<QtCharts>
+#include<QChartView>
+#include<QLineSeries>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -15,7 +20,9 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
+    ~MainWindow();  
+    void setupLineChart();
+
 
 private slots:
     void on_ajout_clicked();
@@ -25,7 +32,6 @@ private slots:
     void on_chercher_clicked();
     void on_pdf_clicked();
     void on_rupture_stock_clicked();
-    void on_statistique_clicked();
     void on_comboBox_activated(const QString &arg1);
 
 private:

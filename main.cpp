@@ -1,14 +1,14 @@
 #include "mainwindow.h"
 #include <QApplication>
 #include <QMessageBox>
-#include "connection.h"
+#include "connexion.h"
 #include <QtCharts>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     MainWindow w;
-    Connection c;
+    Connexion c;
     bool test=c.createconnect();
     if(test)
     {w.show();
